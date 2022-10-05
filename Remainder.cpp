@@ -210,6 +210,182 @@ HRESULT Remainder::createDailyTrigger(HRESULT& hr, ITrigger* pTrigger, ITaskFold
     return hr;
 }
 
+// Weekly Trigger
+HRESULT Remainder::createWeeklyTrigger(HRESULT& hr, ITrigger* pTrigger, ITaskFolder* pRootFolder, ITaskDefinition* pTask) {
+    IWeeklyTrigger* pTDWMYTrigger = NULL;
+    hr = pTrigger->QueryInterface(
+        IID_IWeeklyTrigger, (void**)&pTDWMYTrigger);
+    pTrigger->Release();
+    if (FAILED(hr))
+    {
+        printf("\nQueryInterface call failed for IWeeklyTrigger: %x", hr);
+        pRootFolder->Release();
+        pTask->Release();
+        CoUninitialize();
+        return 1;
+    }
+
+    string trigger_id = getUUID(32);
+    wstring widestr = wstring(trigger_id.begin(), trigger_id.end());
+    const wchar_t* trigger_id_w = widestr.c_str();
+    hr = pTDWMYTrigger->put_Id(ConvertMBSToBSTR(trigger_id));
+    if (FAILED(hr))
+        printf("\nCannot put trigger ID: %x", hr);
+
+    //  Set the task to start at a certain time. The time 
+    //  format should be YYYY-MM-DDTHH:MM:SS(+-)(timezone).
+
+    cout << "Enter Start Date and Time: " << endl;
+    string start_date = validIOHandlers->getDate();
+    string start_time = validIOHandlers->getHourMinute();
+    start_date.append("T");
+    start_date.append(start_time);
+    start_date.append(":00");
+    start_date.append("+05:30");
+
+    widestr = wstring(start_date.begin(), start_date.end());
+    const wchar_t* start_date_w = widestr.c_str();
+    hr = pTDWMYTrigger->put_StartBoundary(ConvertMBSToBSTR(start_date));
+    if (FAILED(hr))
+        printf("\nCannot put start boundary on trigger: %x", hr);
+
+    cout << "Enter Task Expiry Date and Time: " << endl;
+    string end_date = validIOHandlers->getDate();
+    string end_time = validIOHandlers->getHourMinute();
+    end_date.append("T");
+    end_date.append(end_time);
+    end_date.append(":00");
+    end_date.append("+05:30");
+
+    widestr = wstring(end_date.begin(), end_date.end());
+    const wchar_t* end_date_w = widestr.c_str();
+    hr = pTDWMYTrigger->put_EndBoundary(ConvertMBSToBSTR(end_date));
+    if (FAILED(hr))
+    {
+        printf("\nCannot add end boundary to trigger: %x", hr);
+        pRootFolder->Release();
+        pTask->Release();
+        CoUninitialize();
+        return 1;
+    }
+
+    //  Define the interval for the weekly trigger. 
+    //  An interval of 2 produces an
+    //  every other week schedule
+    int interval = validIOHandlers->getInt("Enter the number of weeks Intervals [Number]: ");
+    hr = pTDWMYTrigger->put_WeeksInterval((short)interval);
+    if (FAILED(hr))
+    {
+        printf("\nCannot put weeks interval: %x", hr);
+        pRootFolder->Release();
+        pTDWMYTrigger->Release();
+        pTask->Release();
+        CoUninitialize();
+        return 1;
+    }
+
+    int daysOfWeek = validIOHandlers->getInt("Enter the days of week interval [Number] (1 - 7): ");
+    hr = pTDWMYTrigger->put_DaysOfWeek((short)daysOfWeek);    // 2 Runs on Monday
+    pTDWMYTrigger->Release();
+    if (FAILED(hr))
+    {
+        printf("\nCannot put days of week interval: %x", hr);
+        pRootFolder->Release();
+        pTask->Release();
+        CoUninitialize();
+        return 1;
+    }
+
+    return hr;
+}
+
+// Monthly Trigger
+HRESULT Remainder::createMonthlyTrigger(HRESULT& hr, ITrigger* pTrigger, ITaskFolder* pRootFolder, ITaskDefinition* pTask) {
+    IMonthlyTrigger* pTDWMYTrigger = NULL;
+    hr = pTrigger->QueryInterface(
+        IID_IMonthlyTrigger, (void**)&pTDWMYTrigger);
+    pTrigger->Release();
+    if (FAILED(hr))
+    {
+        printf("\nQueryInterface call failed for IMonthlyTrigger: %x", hr);
+        pRootFolder->Release();
+        pTask->Release();
+        CoUninitialize();
+        return 1;
+    }
+
+    string trigger_id = getUUID(32);
+    wstring widestr = wstring(trigger_id.begin(), trigger_id.end());
+    const wchar_t* trigger_id_w = widestr.c_str();
+    hr = pTDWMYTrigger->put_Id(ConvertMBSToBSTR(trigger_id));
+    if (FAILED(hr))
+        printf("\nCannot put trigger ID: %x", hr);
+
+    //  Set the task to start at a certain time. The time 
+    //  format should be YYYY-MM-DDTHH:MM:SS(+-)(timezone).
+
+    cout << "Enter Start Date and Time: " << endl;
+    string start_date = validIOHandlers->getDate();
+    string start_time = validIOHandlers->getHourMinute();
+    start_date.append("T");
+    start_date.append(start_time);
+    start_date.append(":00");
+    start_date.append("+05:30");
+
+    widestr = wstring(start_date.begin(), start_date.end());
+    const wchar_t* start_date_w = widestr.c_str();
+    hr = pTDWMYTrigger->put_StartBoundary(ConvertMBSToBSTR(start_date));
+    if (FAILED(hr))
+        printf("\nCannot put start boundary on trigger: %x", hr);
+
+    cout << "Enter Task Expiry Date and Time: " << endl;
+    string end_date = validIOHandlers->getDate();
+    string end_time = validIOHandlers->getHourMinute();
+    end_date.append("T");
+    end_date.append(end_time);
+    end_date.append(":00");
+    end_date.append("+05:30");
+
+    widestr = wstring(end_date.begin(), end_date.end());
+    const wchar_t* end_date_w = widestr.c_str();
+    hr = pTDWMYTrigger->put_EndBoundary(ConvertMBSToBSTR(end_date));
+    if (FAILED(hr))
+    {
+        printf("\nCannot add end boundary to trigger: %x", hr);
+        pRootFolder->Release();
+        pTask->Release();
+        CoUninitialize();
+        return 1;
+    }
+
+    //  Define at which date of month the trigger should execute
+    int interval = validIOHandlers->getInt("Enter the Days of Month [Number](1 - 31): ");
+    hr = pTDWMYTrigger->put_DaysOfMonth((short)interval);
+    if (FAILED(hr))
+    {
+        printf("\nCannot put weeks interval: %x", hr);
+        pRootFolder->Release();
+        pTDWMYTrigger->Release();
+        pTask->Release();
+        CoUninitialize();
+        return 1;
+    }
+
+    int daysOfWeek = validIOHandlers->getInt("Enter the Month of Year [Number](1 - 12): ");
+    hr = pTDWMYTrigger->put_MonthsOfYear((short)daysOfWeek);    // 2 Runs on Febraury
+    pTDWMYTrigger->Release();
+    if (FAILED(hr))
+    {
+        printf("\nCannot put days of week interval: %x", hr);
+        pRootFolder->Release();
+        pTask->Release();
+        CoUninitialize();
+        return 1;
+    }
+
+    return hr;
+}
+
 string Remainder::getUUID(size_t len) {
     static const char x[] = "0123456789abcdef";
 
@@ -235,31 +411,7 @@ BSTR Remainder::ConvertMBSToBSTR(const string& str) {
     return wsdata;
 }
 
-void Remainder::feedRecurrence() {
-	recurrence = new unordered_map<int, string>();
-
-	recurrence->insert(make_pair(1, "HOURLY"));
-	recurrence->insert(make_pair(2, "DAILY"));
-	recurrence->insert(make_pair(3, "WEEKLY"));
-	recurrence->insert(make_pair(4, "MONTHLY"));
-	recurrence->insert(make_pair(5, "YEARLY"));
-}
-
-void Remainder::displayRecurrence() {
-	//    iterating over all value of recurrence
-	cout << "\nAll Elements : \n";
-	for (auto& itr : *recurrence)
-	{
-		// itr works as a pointer to pair<int, string>
-		// type itr->first stores the key part  and
-		// itr->second stores the value part
-		cout << itr.first << " : " << itr.second << endl;
-	}
-}
-
-string Remainder::getRecurrence(int key) {
-	return recurrence->at(key);
-}
+// ----------------------------------------------------------- Create Tasks ------------------------------------------ //
 
 int Remainder::createEvent()
 {
@@ -340,14 +492,25 @@ int Remainder::createEvent()
     //  ------------------------------------------------------
     //  Get the pointer to the root task folder.  This folder will hold the
     //  new task that is registered.
-    ITaskFolder* pRootFolder = NULL;
-    hr = pService->GetFolder(_bstr_t(L"\\"), &pRootFolder);
+    ITaskFolder* pRoot1Folder = NULL;
+    //BSTR ddl = NULL;
+    //pRootFolder->GetSecurityDescriptor(ATTRIBUTE_SECURITY_INFORMATION, &ddl);
+    
+    hr = pService->GetFolder(_bstr_t(L"\\"), &pRoot1Folder);
     if (FAILED(hr))
     {
         printf("Cannot get Root folder pointer: %x", hr);
         pService->Release();
         CoUninitialize();
         return 1;
+    }
+
+    VARIANT sddl{};
+    ITaskFolder* pRootFolder = NULL;
+    hr = pRoot1Folder->CreateFolder(ConvertMBSToBSTR("WinTaskScheduler"), sddl, &pRootFolder);
+    if (FAILED(hr))
+    {
+        pService->GetFolder(_bstr_t(L"\\WinTaskScheduler"), &pRootFolder);
     }
 
     //  If the same task exists, remove it.
@@ -488,7 +651,9 @@ int Remainder::createEvent()
     cout << "Task Recurrsive type..." << endl;
     cout << "1 - One Time Task" << endl;
     cout << "2 - Daily Task" << endl;
-    int trigger_choice = validIOHandlers->getInt("Enter a choice [Number]: ");
+    cout << "3 - Weekly Task" << endl;
+    cout << "4 - Monthly Task" << endl;
+    int trigger_choice = validIOHandlers->getInt("Enter a choice [Number](Default - 1): ");
 
     TASK_TRIGGER_TYPE2 trigger_type = TASK_TRIGGER_TIME;
     switch (trigger_choice)
@@ -498,6 +663,12 @@ int Remainder::createEvent()
         break;
     case 2:
         trigger_type = TASK_TRIGGER_DAILY;
+        break;
+    case 3:
+        trigger_type = TASK_TRIGGER_WEEKLY;
+        break;
+    case 4:
+        trigger_type = TASK_TRIGGER_MONTHLY;
         break;
     default:
         break;
@@ -523,7 +694,14 @@ int Remainder::createEvent()
     case 2:
         hr = createDailyTrigger(hr, pTrigger, pRootFolder, pTask);
         break;
+    case 3:
+        hr = createWeeklyTrigger(hr, pTrigger, pRootFolder, pTask);
+        break;
+    case 4:
+        hr = createMonthlyTrigger(hr, pTrigger, pRootFolder, pTask);
+        break;
     default:
+        hr = createTimeTrigger(hr, pTrigger, pRootFolder, pTask);
         break;
     }
 
@@ -624,4 +802,232 @@ int Remainder::createEvent()
     pRegisteredTask->Release();
     CoUninitialize();
     return 0;
+}
+
+// -------------------------------------------------------- Display Tasks --------------------------------------------------- //
+
+int Remainder::readEvent()
+{
+    //  ------------------------------------------------------
+    //  Initialize COM.
+    HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+    if( FAILED(hr) )
+    {
+        printf("\nCoInitializeEx failed: %x", hr );
+        return 1;
+    }
+
+    //  Set general COM security levels.
+    hr = CoInitializeSecurity(
+        NULL,
+        -1,
+        NULL,
+        NULL,
+        RPC_C_AUTHN_LEVEL_PKT_PRIVACY,
+        RPC_C_IMP_LEVEL_IMPERSONATE,
+        NULL,
+        0,
+        NULL);
+
+    if( FAILED(hr) )
+    {
+        printf("\nCoInitializeSecurity failed: %x", hr );
+        CoUninitialize();
+        return 1;
+    }
+
+    //  ------------------------------------------------------
+    //  Create an instance of the Task Service. 
+    ITaskService *pService = NULL;
+    hr = CoCreateInstance( CLSID_TaskScheduler,
+                           NULL,
+                           CLSCTX_INPROC_SERVER,
+                           IID_ITaskService,
+                           (void**)&pService );  
+    if (FAILED(hr))
+    {
+          printf("Failed to CoCreate an instance of the TaskService class: %x", hr);
+          CoUninitialize();
+          return 1;
+    }
+        
+    //  Connect to the task service.
+    hr = pService->Connect(_variant_t(), _variant_t(),
+        _variant_t(), _variant_t());
+    if( FAILED(hr) )
+    {
+        printf("ITaskService::Connect failed: %x", hr );
+        pService->Release();
+        CoUninitialize();
+        return 1;
+    }
+
+    //  ------------------------------------------------------
+    //  Get the pointer to the root task folder.
+    ITaskFolder *pRootFolder = NULL;
+    hr = pService->GetFolder( _bstr_t( L"\\WinTaskScheduler") , &pRootFolder );
+    
+    pService->Release();
+    if( FAILED(hr) )
+    {
+        printf("Cannot get Root Folder pointer: %x", hr );
+        CoUninitialize();
+        return 1;
+    }
+    
+    //  -------------------------------------------------------
+    //  Get the registered tasks in the folder.
+    IRegisteredTaskCollection* pTaskCollection = NULL;
+    hr = pRootFolder->GetTasks( NULL, &pTaskCollection );
+
+    pRootFolder->Release();
+    if( FAILED(hr) )
+    {
+        printf("Cannot get the registered tasks.: %x", hr);
+        CoUninitialize();
+        return 1;
+    }
+
+    LONG numTasks = 0;
+    hr = pTaskCollection->get_Count(&numTasks);
+
+    if( numTasks == 0 )
+     {
+        printf("\nNo Tasks are currently running" );
+        pTaskCollection->Release();
+        CoUninitialize();
+        return 1;
+     }
+
+    printf("\nNumber of Tasks : %d", numTasks );
+
+    TASK_STATE taskState;
+    
+    for(LONG i=0; i < numTasks; i++)
+    {
+        IRegisteredTask* pRegisteredTask = NULL;
+        hr = pTaskCollection->get_Item( _variant_t(i+1), &pRegisteredTask );
+        
+        if( SUCCEEDED(hr) )
+        {
+            BSTR taskName = NULL;
+            hr = pRegisteredTask->get_Name(&taskName);
+            if( SUCCEEDED(hr) )
+            {
+                printf("\nTask Name: %S", taskName);
+                SysFreeString(taskName);
+
+                hr = pRegisteredTask->get_State(&taskState);
+                if (SUCCEEDED (hr) )
+                    printf("\n\tState: %d", taskState);
+                else 
+                    printf("\n\tCannot get the registered task state: %x", hr);
+            }
+            else
+            {
+                printf("\nCannot get the registered task name: %x", hr);
+            }
+            pRegisteredTask->Release();
+        }
+        else
+        {
+            printf("\nCannot get the registered task item at index=%d: %x", i+1, hr);
+        }
+    }
+
+    pTaskCollection->Release();
+    CoUninitialize();
+    return 0;
+}
+
+// ---------------------------------------------- Delete Tasks ----------------------------------------------- //
+int Remainder::deleteEvent() {
+    cout << "Enter '0' to exit...";
+    while (1) {
+        // display the tasks
+        readEvent();
+
+        //  ------------------------------------------------------
+        //  Initialize COM.
+        HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+        if (FAILED(hr))
+        {
+            printf("\nCoInitializeEx failed: %x", hr);
+            return 1;
+        }
+
+        //  Set general COM security levels.
+        hr = CoInitializeSecurity(
+            NULL,
+            -1,
+            NULL,
+            NULL,
+            RPC_C_AUTHN_LEVEL_PKT_PRIVACY,
+            RPC_C_IMP_LEVEL_IMPERSONATE,
+            NULL,
+            0,
+            NULL);
+
+        if (FAILED(hr))
+        {
+            printf("\nCoInitializeSecurity failed: %x", hr);
+            CoUninitialize();
+            return 1;
+        }
+
+        //  ------------------------------------------------------
+        //  Create an instance of the Task Service. 
+        ITaskService* pService = NULL;
+        hr = CoCreateInstance(CLSID_TaskScheduler,
+            NULL,
+            CLSCTX_INPROC_SERVER,
+            IID_ITaskService,
+            (void**)&pService);
+        if (FAILED(hr))
+        {
+            printf("Failed to create an instance of ITaskService: %x", hr);
+            CoUninitialize();
+            return 1;
+        }
+
+        //  Connect to the task service.
+        hr = pService->Connect(_variant_t(), _variant_t(),
+            _variant_t(), _variant_t());
+        if (FAILED(hr))
+        {
+            printf("ITaskService::Connect failed: %x", hr);
+            pService->Release();
+            CoUninitialize();
+            return 1;
+        }
+
+        //  ------------------------------------------------------
+        //  Get the pointer to the root task folder.  This folder will hold the
+        //  new task that is registered.
+        ITaskFolder* pRootFolder = NULL;
+
+        hr = pService->GetFolder(_bstr_t(L"\\WinTaskScheduler"), &pRootFolder);
+        if (FAILED(hr))
+        {
+            printf("Cannot get Root folder pointer: %x", hr);
+            pService->Release();
+            CoUninitialize();
+            return 1;
+        }
+
+        cout << endl;
+        string task_name = validIOHandlers->getString("Enter a Task Name delete [0 / Name]: ");
+
+        if (task_name.compare("0") == 0) {
+            cout << "Exiting...!" << endl;
+            break;
+        }
+        //  If the same task exists, remove it.
+        pRootFolder->DeleteTask(ConvertMBSToBSTR(task_name), 0);
+
+
+        pRootFolder->Release();
+        pService->Release();
+        CoUninitialize();
+    }
 }
