@@ -23,6 +23,8 @@
 #pragma comment(lib, "advapi32.lib")
 #pragma comment(lib, "Shlwapi.lib")
 
+#include <atlcomtime.h>
+
 using namespace std;
 
 // One Time Trigger
@@ -916,7 +918,7 @@ int Remainder::readEvent()
     
     for(LONG i=0; i < numTasks; i++)
     {
-        cout << "--------------------------------------------------" << endl;
+        cout << endl << "--------------------------------------------------" << endl;
         IRegisteredTask* pRegisteredTask = NULL;
         hr = pTaskCollection->get_Item( _variant_t(i+1), &pRegisteredTask );
         
@@ -940,10 +942,32 @@ int Remainder::readEvent()
                 // Task last run time
                 DATE last_run_time = NULL;
                 hr = pRegisteredTask->get_LastRunTime(&last_run_time);
-                if (SUCCEEDED(hr))
-                    printf("\n\t: %d", taskState);
+                COleDateTime last_run_time_c = COleDateTime(last_run_time);
+                if (SUCCEEDED(hr)) {
+                    printf("\n\tLast Run Time: %f = \t", last_run_time);
+                    cout << last_run_time_c.GetDay() << "-";
+                    cout << last_run_time_c.GetMonth() << "-";
+                    cout << last_run_time_c.GetYear() << " ";
+                    cout << last_run_time_c.GetHour() << ":";
+                    cout << last_run_time_c.GetMinute() << endl;
+                }
                 else
-                    printf("\n\tCannot get the registered task state: %x", hr);
+                    printf("\n\tCannot get the registered task Last Run Time: %x", hr);
+
+                // Task Next run time
+                DATE next_run_time = NULL;
+                hr = pRegisteredTask->get_NextRunTime(&next_run_time);
+                COleDateTime next_run_time_c = COleDateTime(next_run_time);
+                if (SUCCEEDED(hr)) {
+                    printf("\n\tNext Run Time: %f = \t", next_run_time);
+                    cout << last_run_time_c.GetDay() << "-";
+                    cout << last_run_time_c.GetMonth() << "-";
+                    cout << last_run_time_c.GetYear() << " ";
+                    cout << last_run_time_c.GetHour() << ":";
+                    cout << last_run_time_c.GetMinute() << endl;
+                }
+                else
+                    printf("\n\tCannot get the registered task Next Run Time: %x", hr);
             }
             else
             {
