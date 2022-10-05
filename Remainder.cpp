@@ -150,62 +150,63 @@ HRESULT Remainder::createDailyTrigger(HRESULT& hr, ITrigger* pTrigger, ITaskFold
 
     //  Define the interval for the daily trigger. An interval of 2 produces an
     //  every other day schedule
-    int interval = validIOHandlers->getInt("Enter the number of Intervals: ");
-    hr = pTDWMYTrigger->put_DaysInterval((short) interval);
-    if (FAILED(hr))
-    {
-        printf("\nCannot put days interval: %x", hr);
-        pRootFolder->Release();
-        pTDWMYTrigger->Release();
-        pTask->Release();
-        CoUninitialize();
-        return 1;
+    cout << endl;
+    if (validIOHandlers->isY("Add Interval [Y/n]? ")) {
+        int interval = validIOHandlers->getInt("Enter the number of Intervals: ");
+        hr = pTDWMYTrigger->put_DaysInterval((short)interval);
+        if (FAILED(hr))
+        {
+            printf("\nCannot put days interval: %x", hr);
+            pRootFolder->Release();
+            pTDWMYTrigger->Release();
+            pTask->Release();
+            CoUninitialize();
+            return 1;
+        }
     }
 
     // Add a repetition to the trigger so that it repeats
     // five times.
-    IRepetitionPattern* pRepetitionPattern = NULL;
-    hr = pTDWMYTrigger->get_Repetition(&pRepetitionPattern);
-    pTDWMYTrigger->Release();
-    if (FAILED(hr))
-    {
-        printf("\nCannot get repetition pattern: %x", hr);
-        pRootFolder->Release();
-        pTask->Release();
-        CoUninitialize();
-        return 1;
-    }
+    cout << endl;
+    if (validIOHandlers->isY("Add Repetation principle [Y/n]? ")) {
+        IRepetitionPattern* pRepetitionPattern = NULL;
+        hr = pTDWMYTrigger->get_Repetition(&pRepetitionPattern);
+        pTDWMYTrigger->Release();
+        if (FAILED(hr))
+        {
+            printf("\nCannot get repetition pattern: %x", hr);
+            pRootFolder->Release();
+            pTask->Release();
+            CoUninitialize();
+            return 1;
+        }
 
-    cout << "Repetation: " << endl;
-    int repetation_duration = validIOHandlers->getInt("Enter Duration in Minutes [Number]: ");
-    string repetation_duration_str = "PT";
-    repetation_duration_str.append(to_string(repetation_duration));
-    repetation_duration_str.append("M");
-    hr = pRepetitionPattern->put_Duration(ConvertMBSToBSTR(repetation_duration_str));
-    if (FAILED(hr))
-    {
-        printf("\nCannot put repetition duration: %x", hr);
-        pRootFolder->Release();
+        cout << "Repetation: " << endl;
+        string repetation_duration_str = validIOHandlers->getPeriodTime("Enter Duration: ");
+        hr = pRepetitionPattern->put_Duration(ConvertMBSToBSTR(repetation_duration_str));
+        if (FAILED(hr))
+        {
+            printf("\nCannot put repetition duration: %x", hr);
+            pRootFolder->Release();
+            pRepetitionPattern->Release();
+            pTask->Release();
+            CoUninitialize();
+            return 1;
+        }
+
+        string repetation_interval_str = validIOHandlers->getPeriodTime("Enter Interval: ");
+        hr = pRepetitionPattern->put_Interval(ConvertMBSToBSTR(repetation_interval_str));
         pRepetitionPattern->Release();
-        pTask->Release();
-        CoUninitialize();
-        return 1;
+        if (FAILED(hr))
+        {
+            printf("\nCannot put repetition interval: %x", hr);
+            pRootFolder->Release();
+            pTask->Release();
+            CoUninitialize();
+            return 1;
+        }
     }
-
-    int repetation_interval = validIOHandlers->getInt("Enter Interval in Minutes [Number]: ");
-    string repetation_interval_str = "PT";
-    repetation_interval_str.append(to_string(repetation_duration));
-    repetation_interval_str.append("M");
-    hr = pRepetitionPattern->put_Interval(ConvertMBSToBSTR(repetation_interval_str));
-    pRepetitionPattern->Release();
-    if (FAILED(hr))
-    {
-        printf("\nCannot put repetition interval: %x", hr);
-        pRootFolder->Release();
-        pTask->Release();
-        CoUninitialize();
-        return 1;
-    }
+    
 
     return hr;
 }
@@ -272,28 +273,34 @@ HRESULT Remainder::createWeeklyTrigger(HRESULT& hr, ITrigger* pTrigger, ITaskFol
     //  Define the interval for the weekly trigger. 
     //  An interval of 2 produces an
     //  every other week schedule
-    int interval = validIOHandlers->getInt("Enter the number of weeks Intervals [Number]: ");
-    hr = pTDWMYTrigger->put_WeeksInterval((short)interval);
-    if (FAILED(hr))
-    {
-        printf("\nCannot put weeks interval: %x", hr);
-        pRootFolder->Release();
-        pTDWMYTrigger->Release();
-        pTask->Release();
-        CoUninitialize();
-        return 1;
+    cout << endl;
+    if (validIOHandlers->isY("Add Interval [Y/n]? ")) {
+        int interval = validIOHandlers->getInt("Enter the number of weeks Intervals [Number]: ");
+        hr = pTDWMYTrigger->put_WeeksInterval((short)interval);
+        if (FAILED(hr))
+        {
+            printf("\nCannot put weeks interval: %x", hr);
+            pRootFolder->Release();
+            pTDWMYTrigger->Release();
+            pTask->Release();
+            CoUninitialize();
+            return 1;
+        }
     }
 
-    int daysOfWeek = validIOHandlers->getInt("Enter the days of week interval [Number] (1 - 7): ");
-    hr = pTDWMYTrigger->put_DaysOfWeek((short)daysOfWeek);    // 2 Runs on Monday
-    pTDWMYTrigger->Release();
-    if (FAILED(hr))
-    {
-        printf("\nCannot put days of week interval: %x", hr);
-        pRootFolder->Release();
-        pTask->Release();
-        CoUninitialize();
-        return 1;
+    cout << endl;
+    if (validIOHandlers->isY("Add Days-of-Week to recurr [Y/n]? ")) {
+        int daysOfWeek = validIOHandlers->getInt("Enter the days of week interval [Number] (1 - 7): ");
+        hr = pTDWMYTrigger->put_DaysOfWeek((short)daysOfWeek);    // 2 Runs on Monday
+        pTDWMYTrigger->Release();
+        if (FAILED(hr))
+        {
+            printf("\nCannot put days of week interval: %x", hr);
+            pRootFolder->Release();
+            pTask->Release();
+            CoUninitialize();
+            return 1;
+        }
     }
 
     return hr;
@@ -359,28 +366,32 @@ HRESULT Remainder::createMonthlyTrigger(HRESULT& hr, ITrigger* pTrigger, ITaskFo
     }
 
     //  Define at which date of month the trigger should execute
-    int interval = validIOHandlers->getInt("Enter the Days of Month [Number](1 - 31): ");
-    hr = pTDWMYTrigger->put_DaysOfMonth((short)interval);
-    if (FAILED(hr))
-    {
-        printf("\nCannot put weeks interval: %x", hr);
-        pRootFolder->Release();
-        pTDWMYTrigger->Release();
-        pTask->Release();
-        CoUninitialize();
-        return 1;
+    if (validIOHandlers->isY("Set the days of the month during which the task runs [Y/n]? ")) {
+        int interval = validIOHandlers->getInt("Enter the Days of Month [Number](1 - 31): ");
+        hr = pTDWMYTrigger->put_DaysOfMonth((short)interval);
+        if (FAILED(hr))
+        {
+            printf("\nCannot put weeks interval: %x", hr);
+            pRootFolder->Release();
+            pTDWMYTrigger->Release();
+            pTask->Release();
+            CoUninitialize();
+            return 1;
+        }
     }
 
-    int daysOfWeek = validIOHandlers->getInt("Enter the Month of Year [Number](1 - 12): ");
-    hr = pTDWMYTrigger->put_MonthsOfYear((short)daysOfWeek);    // 2 Runs on Febraury
-    pTDWMYTrigger->Release();
-    if (FAILED(hr))
-    {
-        printf("\nCannot put days of week interval: %x", hr);
-        pRootFolder->Release();
-        pTask->Release();
-        CoUninitialize();
-        return 1;
+    if (validIOHandlers->isY("Set the months of the year during which the task runs [Y/n]? ")) {
+        int daysOfWeek = validIOHandlers->getInt("Enter the Month of Year [Number](1 - 12): ");
+        hr = pTDWMYTrigger->put_MonthsOfYear((short)daysOfWeek);    // 2 Runs on Febraury
+        pTDWMYTrigger->Release();
+        if (FAILED(hr))
+        {
+            printf("\nCannot put days of week interval: %x", hr);
+            pRootFolder->Release();
+            pTask->Release();
+            CoUninitialize();
+            return 1;
+        }
     }
 
     return hr;
@@ -794,7 +805,7 @@ int Remainder::createEvent()
         return 1;
     }
 
-    printf("\n Success! Task successfully registered. ");
+    printf("\n Success! Task successfully registered. \n");
 
     //  Clean up.
     pRootFolder->Release();
@@ -899,17 +910,19 @@ int Remainder::readEvent()
         return 1;
      }
 
-    printf("\nNumber of Tasks : %d", numTasks );
+    printf("\nNumber of Tasks : %d \n", numTasks );
 
     TASK_STATE taskState;
     
     for(LONG i=0; i < numTasks; i++)
     {
+        cout << "--------------------------------------------------" << endl;
         IRegisteredTask* pRegisteredTask = NULL;
         hr = pTaskCollection->get_Item( _variant_t(i+1), &pRegisteredTask );
         
         if( SUCCEEDED(hr) )
         {
+            // Task name
             BSTR taskName = NULL;
             hr = pRegisteredTask->get_Name(&taskName);
             if( SUCCEEDED(hr) )
@@ -917,10 +930,19 @@ int Remainder::readEvent()
                 printf("\nTask Name: %S", taskName);
                 SysFreeString(taskName);
 
+                // Task state
                 hr = pRegisteredTask->get_State(&taskState);
                 if (SUCCEEDED (hr) )
                     printf("\n\tState: %d", taskState);
                 else 
+                    printf("\n\tCannot get the registered task state: %x", hr);
+
+                // Task last run time
+                DATE last_run_time = NULL;
+                hr = pRegisteredTask->get_LastRunTime(&last_run_time);
+                if (SUCCEEDED(hr))
+                    printf("\n\t: %d", taskState);
+                else
                     printf("\n\tCannot get the registered task state: %x", hr);
             }
             else

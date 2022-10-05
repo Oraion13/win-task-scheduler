@@ -14,6 +14,7 @@ public:
 	string getDate();
 	bool isY(string message);
 	string getString(string message);
+	string getPeriodTime(string message);
 
 private:
 	const int MAX_VALID_YR = 9999;

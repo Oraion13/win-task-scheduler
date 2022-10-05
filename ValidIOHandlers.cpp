@@ -164,3 +164,44 @@ string ValidIOHandlers::getString(string message) {
 		return text;
 	}
 }
+
+string ValidIOHandlers::getPeriodTime(string message) {
+	int hour{};
+	int minute{};
+
+	while (true) {
+		cout << message << endl;
+		hour = getInt("Enter a hour [HH](0 - 23): ");
+
+		if (!(hour >= 0 && hour < 24)) {
+			cout << "Enter a valid input (Hour) [Number (0 - 23)]!" << endl;
+
+			continue;
+		}
+
+		break;
+	}
+
+	while (true) {
+		minute = getInt("Enter a minute [MM](0 - 59): ");
+
+		if (!(minute >= 0 && minute < 60)) {
+			cout << "Enter a valid input (Minute) [Number (0 - 59)]!" << endl;
+
+			continue;
+		}
+
+		break;
+	}
+
+	string pt = "PT";
+	if (hour != 0) {
+		pt.append(to_string(hour));
+		pt.append("H");
+	}
+
+	pt.append(to_string(minute));
+	pt.append("M");
+
+	return pt;
+}
