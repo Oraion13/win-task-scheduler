@@ -27,7 +27,10 @@
     <ClCompile Include="Remainder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RemainderManagement.cpp">
+    <ClCompile Include="CreateTask.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UpdateTask.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -41,7 +44,10 @@
     <ClInclude Include="Remainder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RemainderManagement.h">
+    <ClInclude Include="CreateTask.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UpdateTask.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

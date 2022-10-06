@@ -9,8 +9,8 @@ void Operations::displayOperations() {
 	cout << "0 - Exit" << endl;
 	cout << "1 - Create Remainders" << endl;
 	cout << "2 - Read Remainders" << endl;
-	//cout << "3 - Update Remainders" << endl;
-	cout << "3 - Delete Remainders" << endl;
+	cout << "3 - Update Remainders" << endl;
+	cout << "4 - Delete Remainders" << endl;
 }
 
 void Operations::operations() {
@@ -34,11 +34,11 @@ void Operations::operations() {
 			remainder->readEvent();
 		}
 			  break;
-		//case 3: {
-		//	remainder->updateEvent();
-		//}
-		//	  break;
 		case 3: {
+			remainder->updateEvent();
+		}
+			  break;
+		case 4: {
 			remainder->deleteEvent();
 		}
 			  break;

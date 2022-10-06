@@ -127,16 +127,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CreateTask.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Operations.cpp" />
     <ClCompile Include="Remainder.cpp" />
-    <ClCompile Include="RemainderManagement.cpp" />
+    <ClCompile Include="UpdateTask.cpp" />
     <ClCompile Include="ValidIOHandlers.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CreateTask.h" />
     <ClInclude Include="Operations.h" />
     <ClInclude Include="Remainder.h" />
-    <ClInclude Include="RemainderManagement.h" />
+    <ClInclude Include="UpdateTask.h" />
     <ClInclude Include="ValidIOHandlers.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
