@@ -760,7 +760,7 @@ int CreateTask::createEvent()
 
     if (FAILED(hr))
     {
-        printf("\nCannot put action path: %x", hr);
+        printf("\nCannot put action arguments: %x", hr);
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();

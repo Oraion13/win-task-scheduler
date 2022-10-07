@@ -49,6 +49,8 @@ public:
 	int deleteEvent();
 
 	BSTR ConvertMBSToBSTR(const string& str);
+	string ConvertWCSToMBS(const wchar_t* pstr, long wslen);
+	string callConvertWCSToMBS(BSTR* bstr);
 
 private:
 	ValidIOHandlers* validIOHandlers;

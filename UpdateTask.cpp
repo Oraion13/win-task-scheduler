@@ -2,49 +2,87 @@
 
 HRESULT UpdateTask::updateTriggers(HRESULT& hr, ITaskDefinition* pTask, ITaskFolder* pRootFolder, ITriggerCollection* pTriggerCollection) {
     // -------------------------------------------------
+    string trigger_arr[] = {
+    "TASK_TRIGGER_EVENT",
+        "ONE TIME",
+        "DAILY",
+        "WEEKLY",
+        "MONTHLY",
+        "TASK_TRIGGER_MONTHLYDOW",
+        "TASK_TRIGGER_IDLE",
+        "TASK_TRIGGER_REGISTRATION",
+        "TASK_TRIGGER_BOOT",
+        "TASK_TRIGGER_LOGON",
+        "TASK_TRIGGER_SESSION_STATE_CHANGE",
+        "TASK_TRIGGER_CUSTOM_TRIGGER_01"
+};
     // Iterate over the triggers to get a trigger
     long pCount = 0;
     pTriggerCollection->get_Count(&pCount);
 
-    while (1) {
-        ITrigger* pTrigger = NULL;
         cout << endl;
-        cout << "Index\t | \tTask Trigger Type" << endl;
+        cout << "Index\t | \tTask Trigger Type | \tStart Boundary\t | \tEnd Boundary" << endl;
         for (int i = 0; i < pCount; i++) {
             ITrigger* pTrigger_itr = NULL;
-            pTriggerCollection->get_Item(i, &pTrigger_itr);
+            pTriggerCollection->get_Item(i+1, &pTrigger_itr);
 
-            cout << i + 1 << "\t |";
-            TASK_TRIGGER_TYPE2 pTtype = TASK_TRIGGER_DAILY;
-            pTrigger_itr->get_Type(&pTtype);
+            cout << i + 1 << "\t | \t";
+            // get start boundary
+            BSTR* trigg_start = new BSTR;
+            pTrigger_itr->get_StartBoundary(trigg_start);
 
-            cout << pTtype << endl;
+            // get start boundary
+            BSTR* trigg_end = new BSTR;
+            pTrigger_itr->get_EndBoundary(trigg_end);
+
+            // get trigger type
+            TASK_TRIGGER_TYPE2 *pType = new TASK_TRIGGER_TYPE2;
+            pTrigger_itr->get_Type(pType);
+
+            // print the details
+            cout << trigger_arr[*pType]
+                << " | " <<  remainder->callConvertWCSToMBS(trigg_start) 
+                << " | " << remainder->callConvertWCSToMBS(trigg_end) << endl;
+
+            // change start boundary
+            bool change_flag = false;
+            if (validIOHandlers->isY("Change Start Boundary [Y/n]?: ")) {
+                cout << "Enter Start Date and Time: " << endl;
+                string start_date = validIOHandlers->getDate();
+                string start_time = validIOHandlers->getHourMinute();
+                start_date.append("T");
+                start_date.append(start_time);
+                start_date.append(":00");
+                start_date.append("+05:30");
+
+                wstring widestr = wstring(start_date.begin(), start_date.end());
+                const wchar_t* start_date_w = widestr.c_str();
+                hr = pTrigger_itr->put_StartBoundary(remainder->ConvertMBSToBSTR(start_date));
+                if (FAILED(hr))
+                    printf("\nCannot put start boundary on trigger: %x", hr);
+
+                change_flag = true;
+            }
+
+            // change end boundary
+            if (change_flag || validIOHandlers->isY("Change End Boundary [Y/n]?: ")) {
+                cout << "Enter Task Expiry Date and Time: " << endl;
+                string end_date = validIOHandlers->getDate();
+                string end_time = validIOHandlers->getHourMinute();
+                end_date.append("T");
+                end_date.append(end_time);
+                end_date.append(":00");
+                end_date.append("+05:30");
+
+                wstring widestr = wstring(end_date.begin(), end_date.end());
+                const wchar_t* end_date_w = widestr.c_str();
+                hr = pTrigger_itr->put_EndBoundary(remainder->ConvertMBSToBSTR(end_date));
+                if (FAILED(hr))
+                    printf("\nCannot put end boundary on trigger: %x", hr);
+            }
 
             pTrigger_itr->Release();
         }
-
-        cout << "Enter '-1' to exit..." << endl;
-        int index = validIOHandlers->getInt("Enter a Trigger index [-1 / Number]: ");
-
-        if (index >= pCount) continue;
-
-        if (index < 0) break;
-
-        hr = pTriggerCollection->get_Item(index, &pTrigger);
-        
-        if (FAILED(hr)) {
-            return hr;
-        }
-
-        // ***** Do update the existing trigger **** //
-        cout << "choosen: " << endl;
-        TASK_TRIGGER_TYPE2 pTtype;
-        pTrigger->get_Type(&pTtype);
-
-        cout << pTtype << endl;
-
-        pTrigger->Release();
-    }
 
     return hr;
 }
@@ -125,7 +163,7 @@ int UpdateTask::updateEvent() {
         }
 
         cout << endl;
-        string task_name = validIOHandlers->getString("Enter a Task Name to delete [0 / Name]: ");
+        string task_name = validIOHandlers->getString("Enter a Task Name to Update [0 / Name]: ");
 
         if (task_name.compare("0") == 0) {
             cout << "Exiting...!" << endl;
@@ -163,7 +201,7 @@ int UpdateTask::updateEvent() {
             CoUninitialize();
             return 1;
         }
-        // -------------------------------------------------
+        // ------------------------ Update Trigger --------------------------- //
         if (validIOHandlers->isY("Update triggers [Y/n]?: ")) {
             hr = updateTriggers(hr, pTask, pRootFolder, pTriggerCollection);
 
@@ -176,7 +214,6 @@ int UpdateTask::updateEvent() {
                 return 1;
             }
         }
-        
 
         // ------------------- New Trigger ---------------- //
         if (validIOHandlers->isY("Add a new trigger [Y/n]?: ")) {
@@ -207,7 +244,7 @@ int UpdateTask::updateEvent() {
             }
 
             IAction* pAction = NULL;
-            hr = pActionCollection->get_Item(0, &pAction);
+            hr = pActionCollection->get_Item(1, &pAction);
             pActionCollection->Release();
             if (FAILED(hr)) {
                 pTask->Release();
@@ -217,21 +254,7 @@ int UpdateTask::updateEvent() {
 
                 return 1;
             }
-
-            //  Set the path to Notifier.exe.
-            TCHAR path[MAX_PATH] = { 0 };
-            GetModuleFileName(NULL, path, MAX_PATH);
-            PathRemoveFileSpec(path);
-            PathAppend(path, L"Notifier.exe");
-
-            string task_title = validIOHandlers->getString("Enter Task title: ");
-            string task_desc = validIOHandlers->getString("Enter Task description: ");
-
-            task_title.append(" ");
-            task_title.append(task_desc);
-            wstring widestr = wstring(task_title.begin(), task_title.end());
-            const wchar_t* args_w = widestr.c_str();
-
+            
             IExecAction* pExecAction = NULL;
             //  QI for the executable task pointer.
             hr = pAction->QueryInterface(
@@ -246,24 +269,27 @@ int UpdateTask::updateEvent() {
                 return 1;
             }
 
+            // get the old arguments
+            BSTR* prev_args = new BSTR;
+            pExecAction->get_Arguments(prev_args);
+            
+            cout << "Previous args: " << remainder->callConvertWCSToMBS(prev_args) << endl;
+
+            // get arguments
+            string task_title = validIOHandlers->getString("Enter Task title: ");
+            string task_desc = validIOHandlers->getString("Enter Task description: ");
+
+            task_title.append(" ");
+            task_title.append(task_desc);
+            wstring widestr = wstring(task_title.begin(), task_title.end());
+            const wchar_t* args_w = widestr.c_str();
+
             //  Set the argumetns
             hr = pExecAction->put_Arguments(remainder->ConvertMBSToBSTR(task_title));
-
-            if (FAILED(hr))
-            {
-                printf("\nCannot put action path: %x", hr);
-                pRootFolder->Release();
-                pTask->Release();
-                CoUninitialize();
-                return 1;
-            }
-
-            //  Set the path of the executable to notepad.exe.
-            hr = pExecAction->put_Path(_bstr_t(path));
             pExecAction->Release();
             if (FAILED(hr))
             {
-                printf("\nCannot put action path: %x", hr);
+                printf("\nCannot update action arguments: %x", hr);
                 pRootFolder->Release();
                 pTask->Release();
                 CoUninitialize();

@@ -9,11 +9,52 @@ BSTR Remainder::ConvertMBSToBSTR(const string& str) {
     return wsdata;
 }
 
+string Remainder::ConvertWCSToMBS(const wchar_t* pstr, long wslen) {
+    int len = ::WideCharToMultiByte(CP_ACP, 0, pstr, wslen, NULL, 0, NULL, NULL);
+
+    string dblstr(len, '\0');
+    len = ::WideCharToMultiByte(CP_ACP, 0, pstr, wslen, &dblstr[0], len, NULL, NULL);
+
+    return dblstr;
+}
+
+string Remainder::callConvertWCSToMBS(BSTR* bstr) {
+    UINT length = SysStringLen(*bstr);        // Ask COM for the size of the BSTR
+    wchar_t* wcs_string = new wchar_t[length + 1]; // Note: SysStringLen doesn't 
+    // include the space needed for the NULL
+
+    wcscpy_s(wcs_string, length + 1, *bstr);
+
+    return ConvertWCSToMBS(wcs_string, wcslen(wcs_string));
+}
+
 // -------------------------------------------------------- Display Tasks --------------------------------------------------- //
 
 int Remainder::readEvent()
 {
     //  ------------------------------------------------------
+    string trigger_arr[] = {
+    "TASK_TRIGGER_EVENT",
+        "ONE TIME",
+        "DAILY",
+        "WEEKLY",
+        "MONTHLY",
+        "TASK_TRIGGER_MONTHLYDOW",
+        "TASK_TRIGGER_IDLE",
+        "TASK_TRIGGER_REGISTRATION",
+        "TASK_TRIGGER_BOOT",
+        "TASK_TRIGGER_LOGON",
+        "TASK_TRIGGER_SESSION_STATE_CHANGE",
+        "TASK_TRIGGER_CUSTOM_TRIGGER_01"
+    };
+
+    string action_arr[] = {
+        "TASK_ACTION_EXEC",
+        "TASK_ACTION_COM_HANDLER",
+        "TASK_ACTION_SEND_EMAIL",
+        "TASK_ACTION_SHOW_MESSAGE"
+    };
+
     //  Initialize COM.
     HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
     if( FAILED(hr) )
@@ -160,6 +201,86 @@ int Remainder::readEvent()
                 }
                 else
                     printf("\n\tCannot get the registered task Next Run Time: %x", hr);
+
+                // Get the Task
+                ITaskDefinition* pTask = NULL;
+                pRegisteredTask->get_Definition(&pTask);
+                
+                // Get Triggers
+                ITriggerCollection* pTriggers = NULL;
+                pTask->get_Triggers(&pTriggers);
+
+                // Get Actions
+                IActionCollection* pActions = NULL;
+                pTask->get_Actions(&pActions);
+                pTask->Release();
+
+                // Traverse Triggers
+                long triggers_len = 0;
+                pTriggers->get_Count(&triggers_len);
+                cout << "\n\tIndex\t | \tTask Trigger Type | \tStart Boundary\t | \tEnd Boundary" << endl;
+                for (int i = 0; i < triggers_len; i++) {
+                    ITrigger* pTrigger_itr = NULL;
+                    pTriggers->get_Item(i + 1, &pTrigger_itr);
+
+                    cout << "\t" << i + 1 << "\t | \t";
+                    // get start boundary
+                    BSTR* trigg_start = new BSTR;
+                    pTrigger_itr->get_StartBoundary(trigg_start);
+
+                    // get start boundary
+                    BSTR* trigg_end = new BSTR;
+                    pTrigger_itr->get_EndBoundary(trigg_end);
+
+                    // get trigger type
+                    TASK_TRIGGER_TYPE2* pType = new TASK_TRIGGER_TYPE2;
+                    pTrigger_itr->get_Type(pType);
+
+                    // print the details
+                    cout << trigger_arr[*pType] << "\t\t"
+                        << " | " << callConvertWCSToMBS(trigg_start).substr(0, 10) << " " << callConvertWCSToMBS(trigg_start).substr(11, 18)
+                        << " | " << callConvertWCSToMBS(trigg_end).substr(0, 10) << " " << callConvertWCSToMBS(trigg_end).substr(11, 18) << endl;
+
+                    pTrigger_itr->Release();
+                }
+
+                pTriggers->Release();
+
+                // Traverse Actions
+                long actions_len = 0;
+                pActions->get_Count(&actions_len);
+
+                cout << endl;
+                for (int i = 1; i <= actions_len; i++) {
+                    // Get the action
+                    IAction* pAction = NULL;
+                    pActions->get_Item(i, &pAction);
+
+                    // get action type
+                    TASK_ACTION_TYPE* task_action_type = new TASK_ACTION_TYPE;
+                    pAction->get_Type(task_action_type);
+
+                    cout << "\t" << "Action Type   : " << action_arr[*task_action_type] << endl;
+
+                    // get Execution pointer
+                    IExecAction* pExecAction = NULL;
+                    hr = pAction->QueryInterface(
+                        IID_IExecAction, (void**)&pExecAction);
+
+                    // Get exec path and arguments
+                    BSTR* exec_path = new BSTR;
+                    pExecAction->get_Path(exec_path);
+                    BSTR* exec_args = new BSTR;
+                    pExecAction->get_Arguments(exec_args);
+
+                    cout << "\t" << "Execution Path: " << callConvertWCSToMBS(exec_path) << endl;
+                    cout << "\t" << "Argumetns     : " << callConvertWCSToMBS(exec_args) << endl;
+
+                    pExecAction->Release();
+                    pAction->Release();
+                }
+
+                pActions->Release();
             }
             else
             {
