@@ -430,7 +430,7 @@ HRESULT CreateTask::principal(HRESULT& hr, ITaskDefinition* pTask, IPrincipal* p
     }
 
     //  Set up principal logon type to interactive logon
-    hr = pPrincipal->put_LogonType(TASK_LOGON_INTERACTIVE_TOKEN); // ******* Hide the cmd when notification ****** 
+    hr = pPrincipal->put_LogonType(TASK_LOGON_S4U); // ******* Hide the cmd when notification ****** 
     pPrincipal->Release();
     if (FAILED(hr))
     {
