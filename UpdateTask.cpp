@@ -230,6 +230,10 @@ int UpdateTask::updateEvent() {
             }
         }
 
+        // put back triggers
+        pTask->put_Triggers(pTriggerCollection);
+        pTriggerCollection->Release();
+
         // ----------------- Change Title and Message ---------- //
         if (validIOHandlers->isY("Change Title and Description for Remainder [Y/n]?: ")) {
             IActionCollection* pActionCollection = NULL;
@@ -296,8 +300,14 @@ int UpdateTask::updateEvent() {
                 return 1;
             }
 
+            // put back actions
+            pTask->put_Actions(pActionCollection);
+            pActionCollection->Release();
+
         }
 
+        pRootFolder->Release();
+        pTask->Release();
         CoUninitialize();
     }
 
