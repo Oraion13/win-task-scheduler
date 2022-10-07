@@ -4,7 +4,7 @@
 
 using namespace std;
 
-int main(int argc, char* argv[]) {
+int notifier(int argc, char* argv[]) {
 	// Hide the shell
 	ShowWindow(GetConsoleWindow(), SW_HIDE);
 
