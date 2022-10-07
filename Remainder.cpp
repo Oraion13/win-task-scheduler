@@ -1,37 +1,4 @@
 #include "Remainder.h"
-#include "ValidIOHandlers.h"
-
-#define _WIN32_DCOM
-
-#include <windows.h>
-#include <iostream>
-#include <stdio.h>
-#include <comdef.h>
-#include <wincred.h>
-#include <random>
-//  Include the task header file.
-#include <taskschd.h>
-#pragma comment(lib, "taskschd.lib")
-#pragma comment(lib, "comsupp.lib")
-#pragma comment(lib, "credui.lib")
-
-
-#include <tchar.h>
-#include <strsafe.h>
-#include <shlwapi.h>
-
-#pragma comment(lib, "advapi32.lib")
-#pragma comment(lib, "Shlwapi.lib")
-
-#include <atlcomtime.h>
-
-#include <initguid.h>
-#include <ole2.h>
-#include <mstask.h>
-#include <msterr.h>
-#include <wchar.h>
-
-using namespace std;
 
 BSTR Remainder::ConvertMBSToBSTR(const string& str) {
     int wslen = ::MultiByteToWideChar(CP_ACP, 0, str.data(), str.length(), NULL, 0);
@@ -300,4 +267,6 @@ int Remainder::deleteEvent() {
         pService->Release();
         CoUninitialize();
     }
+
+    return 0;
 }

@@ -4,6 +4,7 @@
 #include "ValidIOHandlers.h"
 #include "Remainder.h"
 #include "CreateTask.h"
+#include "UpdateTask.h"
 
 using namespace std;
 
@@ -13,7 +14,8 @@ public:
 	Operations() {
 		validIOHandlers = new ValidIOHandlers();
 		remainder = new Remainder();
-		createEvent = new CreateTask();
+		createTask = new CreateTask();
+		updateTask = new UpdateTask();
 		operations();
 	}
 
@@ -23,6 +25,7 @@ public:
 private:
 	ValidIOHandlers* validIOHandlers;
 	Remainder* remainder;
-	CreateTask* createEvent;
+	CreateTask* createTask;
+	UpdateTask* updateTask;
 };
 

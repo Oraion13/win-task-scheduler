@@ -26,7 +26,7 @@ void Operations::operations() {
 
 		switch (choice) {
 		case 1: {
-			remainder->createEvent();
+			createTask->createEvent();
 		}
 			  break;
 			  
@@ -35,7 +35,7 @@ void Operations::operations() {
 		}
 			  break;
 		case 3: {
-			remainder->updateEvent();
+			updateTask->updateEvent();
 		}
 			  break;
 		case 4: {
