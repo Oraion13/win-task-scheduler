@@ -129,6 +129,7 @@
   <ItemGroup>
     <ClCompile Include="CreateTask.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Notifier.cpp" />
     <ClCompile Include="Operations.cpp" />
     <ClCompile Include="Remainder.cpp" />
     <ClCompile Include="UpdateTask.cpp" />

@@ -5,7 +5,7 @@ HRESULT CreateTask::createTimeTrigger(HRESULT& hr, ITrigger* pTrigger, ITaskFold
     ITimeTrigger* pTDWMYTrigger = NULL;
     hr = pTrigger->QueryInterface(
         IID_ITimeTrigger, (void**)&pTDWMYTrigger);
-    pTrigger->Release();
+    //pTrigger->Release();
     if (FAILED(hr))
     {
         printf("\nQueryInterface call failed for ITimeTrigger: %x", hr);
@@ -526,7 +526,7 @@ HRESULT CreateTask::trigger(HRESULT& hr, ITaskDefinition* pTask, ITriggerCollect
     // For a new Trigger
     if (isNewTrigger) {
         hr = pTriggerCollection->Create(trigger_type, &pTrigger);
-        pTriggerCollection->Release();
+        //pTriggerCollection->Release();
         if (FAILED(hr))
         {
             printf("\nCannot create trigger: %x", hr);
@@ -710,7 +710,8 @@ int CreateTask::createEvent()
     //  Add the time trigger to the task.
     ITrigger* pTrigger = NULL;
     hr = trigger(hr, pTask, pTriggerCollection, pTrigger, pRootFolder, true);
-    
+    pTriggerCollection->Release();
+    pTrigger->Release();
     // Do add interval and repetation for tasks except one time tasks
 
     //  ------------------------------------------------------

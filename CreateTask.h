@@ -45,6 +45,7 @@ public:
 	HRESULT principal(HRESULT& hr, ITaskDefinition* pTask, IPrincipal* pPrincipal, ITaskFolder* pRootFolder);
 	HRESULT settings(HRESULT& hr, ITaskDefinition* pTask, ITaskSettings* pSettings, ITaskFolder* pRootFolder);
 	HRESULT trigger(HRESULT& hr, ITaskDefinition* pTask, ITriggerCollection* pTriggerCollection, ITrigger* pTrigger, ITaskFolder* pRootFolder, bool isNewTrigger);
+	// HRESULT action(HRESULT& hr, ITaskDefinition* pTask, IAction* pAction, ITaskFolder* pRootFolder);
 
 private:
 	ValidIOHandlers* validIOHandlers;

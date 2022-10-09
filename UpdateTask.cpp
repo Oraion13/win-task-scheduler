@@ -88,7 +88,7 @@ HRESULT UpdateTask::updateTriggers(HRESULT& hr, ITaskDefinition* pTask, ITaskFol
 }
 
 // ------------------------------------------------------ Update Tasks --------------------------------------------------- //
-int UpdateTask::updateEvent() {
+int UpdateTask::updateEvent() {    
     cout << "Enter '0' to exit...";
     while (1) {
         // display the tasks
@@ -184,7 +184,7 @@ int UpdateTask::updateEvent() {
         // Get the task definition
         ITaskDefinition* pTask = NULL;
         hr = pRegisteredTask->get_Definition(&pTask);
-        pRegisteredTask->Release();
+
         if (FAILED(hr)) {
             pTask->Release();
             CoUninitialize();
@@ -219,7 +219,7 @@ int UpdateTask::updateEvent() {
         if (validIOHandlers->isY("Add a new trigger [Y/n]?: ")) {
             ITrigger* pTrigger = NULL;
             hr = createTask->trigger(hr, pTask, pTriggerCollection, pTrigger, pRootFolder, true);
-
+            pTrigger->Release();
             if (FAILED(hr)) {
                 pTask->Release();
                 pRootFolder->Release();
@@ -231,7 +231,7 @@ int UpdateTask::updateEvent() {
         }
 
         // put back triggers
-        pTask->put_Triggers(pTriggerCollection);
+        /*pTask->put_Triggers(pTriggerCollection);*/
         pTriggerCollection->Release();
 
         // ----------------- Change Title and Message ---------- //
@@ -239,6 +239,7 @@ int UpdateTask::updateEvent() {
             IActionCollection* pActionCollection = NULL;
             hr = pTask->get_Actions(&pActionCollection);
             if (FAILED(hr)) {
+                cout << "Cannot get action collection " << hr << endl;
                 pTask->Release();
                 pRootFolder->Release();
                 pActionCollection->Release();
@@ -247,10 +248,11 @@ int UpdateTask::updateEvent() {
                 return 1;
             }
 
+            // Get the old action
             IAction* pAction = NULL;
             hr = pActionCollection->get_Item(1, &pAction);
-            pActionCollection->Release();
             if (FAILED(hr)) {
+                cout << "cannot get action " << hr << endl;
                 pTask->Release();
                 pRootFolder->Release();
                 pAction->Release();
@@ -258,12 +260,11 @@ int UpdateTask::updateEvent() {
 
                 return 1;
             }
-            
+
             IExecAction* pExecAction = NULL;
             //  QI for the executable task pointer.
             hr = pAction->QueryInterface(
                 IID_IExecAction, (void**)&pExecAction);
-            pAction->Release();
             if (FAILED(hr))
             {
                 printf("\nQueryInterface call failed for IExecAction: %x", hr);
@@ -273,11 +274,16 @@ int UpdateTask::updateEvent() {
                 return 1;
             }
 
-            // get the old arguments
+            // get the old path, arguments
             BSTR* prev_args = new BSTR;
             pExecAction->get_Arguments(prev_args);
-            
-            cout << "Previous args: " << remainder->callConvertWCSToMBS(prev_args) << endl;
+            BSTR* prev_path = new BSTR;
+            pExecAction->get_Path(prev_path);
+
+            cout << endl << "Previous args: " << remainder->callConvertWCSToMBS(prev_args) << endl;
+
+            // delete the old action
+            //pActionCollection->Remove(_variant_t(L"1"));
 
             // get arguments
             string task_title = validIOHandlers->getString("Enter Task title: ");
@@ -285,15 +291,13 @@ int UpdateTask::updateEvent() {
 
             task_title.append(" 0809x ");
             task_title.append(task_desc);
-            wstring widestr = wstring(task_title.begin(), task_title.end());
-            const wchar_t* args_w = widestr.c_str();
 
             //  Set the argumetns
             hr = pExecAction->put_Arguments(remainder->ConvertMBSToBSTR(task_title));
-            pExecAction->Release();
+
             if (FAILED(hr))
             {
-                printf("\nCannot update action arguments: %x", hr);
+                printf("\nCannot put action arguments: %x", hr);
                 pRootFolder->Release();
                 pTask->Release();
                 CoUninitialize();
@@ -301,14 +305,116 @@ int UpdateTask::updateEvent() {
             }
 
             // put back actions
-            pTask->put_Actions(pActionCollection);
+            //pTask->put_Actions(pActionCollection);
+            pExecAction->Release();
+            pAction->Release();
             pActionCollection->Release();
 
         }
 
+        // --------------------------------------------------------------------------
+        //  Save the task in the root folder.
+        hr = pRootFolder->RegisterTaskDefinition( 
+     remainder->ConvertMBSToBSTR(task_name),
+     pTask,
+     TASK_CREATE_OR_UPDATE,
+     _variant_t(),
+     _variant_t(),
+     TASK_LOGON_INTERACTIVE_TOKEN,
+     _variant_t(L""),
+     &pRegisteredTask);
+        if (FAILED(hr))
+        {
+            printf("\nError saving the Task : %x", hr);
+            pRootFolder->Release();
+            pTask->Release();
+            CoUninitialize();
+            return 1;
+        }
+
+        printf("\n Success! Task successfully updated. \n");
+
+        //  Clean up.
         pRootFolder->Release();
         pTask->Release();
+        pRegisteredTask->Release();
         CoUninitialize();
-    }
+        return 0;
 
+
+        //  ------------------------------------------------------
+    //  Securely get the user name and password. The task will
+    //  be created to run with the credentials from the supplied 
+    //  user name and password.
+        //CREDUI_INFO cui;
+        //TCHAR pszName[CREDUI_MAX_USERNAME_LENGTH] = TEXT("");
+        //TCHAR pszPwd[CREDUI_MAX_PASSWORD_LENGTH] = TEXT("");
+        //BOOL fSave;
+        //DWORD dwErr;
+
+        //cui.cbSize = sizeof(CREDUI_INFO);
+        //cui.hwndParent = NULL;
+        ////  Ensure that MessageText and CaptionText identify
+        ////  what credentials to use and which application requires them.
+        //cui.pszMessageText = TEXT("Account information for task registration:");
+        //cui.pszCaptionText = TEXT("Enter Account Information for Task Registration");
+        //cui.hbmBanner = NULL;
+        //fSave = FALSE;
+
+        ////  Create the UI asking for the credentials.
+        //dwErr = CredUIPromptForCredentials(
+        //    &cui,                             //  CREDUI_INFO structure
+        //    TEXT(""),                         //  Target for credentials
+        //    NULL,                             //  Reserved
+        //    0,                                //  Reason
+        //    pszName,                          //  User name
+        //    CREDUI_MAX_USERNAME_LENGTH,       //  Max number for user name
+        //    pszPwd,                           //  Password
+        //    CREDUI_MAX_PASSWORD_LENGTH,       //  Max number for password
+        //    &fSave,                           //  State of save check box
+        //    CREDUI_FLAGS_GENERIC_CREDENTIALS |  //  Flags
+        //    CREDUI_FLAGS_ALWAYS_SHOW_UI |
+        //    CREDUI_FLAGS_DO_NOT_PERSIST);
+
+        //if (dwErr)
+        //{
+        //    cout << "Did not get credentials." << endl;
+        //    CoUninitialize();
+        //    return 1;
+        //}
+
+        ////  ------------------------------------------------------
+        ////  Save the task in the root folder.
+        ////IRegisteredTask* pRegisteredTask = NULL;
+        //hr = pRootFolder->RegisterTaskDefinition(
+        //    remainder->ConvertMBSToBSTR(task_name),
+        //    pTask,
+        //    TASK_CREATE_OR_UPDATE,
+        //    _variant_t(_bstr_t(pszName)),
+        //    _variant_t(_bstr_t(pszPwd)),
+        //    TASK_LOGON_PASSWORD,
+        //    _variant_t(L""),
+        //    &pRegisteredTask);
+        //if (FAILED(hr))
+        //{
+        //    printf("\nError saving the Task : %x", hr);
+        //    pRootFolder->Release();
+        //    pTask->Release();
+        //    CoUninitialize();
+        //    SecureZeroMemory(pszName, sizeof(pszName));
+        //    SecureZeroMemory(pszPwd, sizeof(pszPwd));
+        //    return 1;
+        //}
+
+        //printf("\n Success! Task successfully registered. ");
+
+        ////  Clean up
+        //pRootFolder->Release();
+        //pTask->Release();
+        //pRegisteredTask->Release();
+        //CoUninitialize();
+        //SecureZeroMemory(pszName, sizeof(pszName));
+        //SecureZeroMemory(pszPwd, sizeof(pszPwd));
+        //return 0;
+    }
 }
