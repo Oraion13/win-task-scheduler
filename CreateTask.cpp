@@ -5,7 +5,7 @@ HRESULT CreateTask::createTimeTrigger(HRESULT& hr, ITrigger* pTrigger, ITaskFold
     ITimeTrigger* pTDWMYTrigger = NULL;
     hr = pTrigger->QueryInterface(
         IID_ITimeTrigger, (void**)&pTDWMYTrigger);
-    //pTrigger->Release();
+    pTrigger->Release();
     if (FAILED(hr))
     {
         printf("\nQueryInterface call failed for ITimeTrigger: %x", hr);
@@ -146,7 +146,7 @@ HRESULT CreateTask::createDailyTrigger(HRESULT& hr, ITrigger* pTrigger, ITaskFol
     if (validIOHandlers->isY("Add Repetation principle [Y/n]? ")) {
         IRepetitionPattern* pRepetitionPattern = NULL;
         hr = pTDWMYTrigger->get_Repetition(&pRepetitionPattern);
-        pTDWMYTrigger->Release();
+        
         if (FAILED(hr))
         {
             printf("\nCannot get repetition pattern: %x", hr);
@@ -181,7 +181,7 @@ HRESULT CreateTask::createDailyTrigger(HRESULT& hr, ITrigger* pTrigger, ITaskFol
             return 1;
         }
     }
-
+    pTDWMYTrigger->Release();
 
     return hr;
 }
@@ -267,7 +267,7 @@ HRESULT CreateTask::createWeeklyTrigger(HRESULT& hr, ITrigger* pTrigger, ITaskFo
     if (validIOHandlers->isY("Add Days-of-Week to recurr [Y/n]? ")) {
         int daysOfWeek = validIOHandlers->getInt("Enter the days of week interval [Number] (1 - 7): ");
         hr = pTDWMYTrigger->put_DaysOfWeek((short)daysOfWeek);    // 2 Runs on Monday
-        pTDWMYTrigger->Release();
+        
         if (FAILED(hr))
         {
             printf("\nCannot put days of week interval: %x", hr);
@@ -277,7 +277,7 @@ HRESULT CreateTask::createWeeklyTrigger(HRESULT& hr, ITrigger* pTrigger, ITaskFo
             return 1;
         }
     }
-
+    pTDWMYTrigger->Release();
     return hr;
 }
 
@@ -358,7 +358,7 @@ HRESULT CreateTask::createMonthlyTrigger(HRESULT& hr, ITrigger* pTrigger, ITaskF
     if (validIOHandlers->isY("Set the months of the year during which the task runs [Y/n]? ")) {
         int daysOfWeek = validIOHandlers->getInt("Enter the Month of Year [Number](1 - 12): ");
         hr = pTDWMYTrigger->put_MonthsOfYear((short)daysOfWeek);    // 2 Runs on Febraury
-        pTDWMYTrigger->Release();
+        
         if (FAILED(hr))
         {
             printf("\nCannot put days of week interval: %x", hr);
@@ -368,7 +368,7 @@ HRESULT CreateTask::createMonthlyTrigger(HRESULT& hr, ITrigger* pTrigger, ITaskF
             return 1;
         }
     }
-
+    pTDWMYTrigger->Release();
     return hr;
 }
 
@@ -491,7 +491,7 @@ HRESULT CreateTask::settings(HRESULT& hr, ITaskDefinition* pTask, ITaskSettings*
         CoUninitialize();
         return 1;
     }
-
+ 
     return hr;
 }
 
@@ -527,6 +527,16 @@ HRESULT CreateTask::trigger(HRESULT& hr, ITaskDefinition* pTask, ITriggerCollect
     if (isNewTrigger) {
         hr = pTriggerCollection->Create(trigger_type, &pTrigger);
         //pTriggerCollection->Release();
+        if (FAILED(hr))
+        {
+            printf("\nCannot create trigger: %x", hr);
+            pRootFolder->Release();
+            pTask->Release();
+            CoUninitialize();
+            return 1;
+        }
+    }
+    else {// for old triggers
         if (FAILED(hr))
         {
             printf("\nCannot create trigger: %x", hr);
@@ -711,7 +721,6 @@ int CreateTask::createEvent()
     ITrigger* pTrigger = NULL;
     hr = trigger(hr, pTask, pTriggerCollection, pTrigger, pRootFolder, true);
     pTriggerCollection->Release();
-    pTrigger->Release();
     // Do add interval and repetation for tasks except one time tasks
 
     //  ------------------------------------------------------

@@ -16,15 +16,18 @@ HRESULT UpdateTask::updateTriggers(HRESULT& hr, ITaskDefinition* pTask, ITaskFol
         "TASK_TRIGGER_SESSION_STATE_CHANGE",
         "TASK_TRIGGER_CUSTOM_TRIGGER_01"
 };
-    // Iterate over the triggers to get a trigger
-    long pCount = 0;
-    pTriggerCollection->get_Count(&pCount);
+
+    //while (1) {
+
+        // Iterate over the triggers to get a trigger
+        long pCount = 0;
+        pTriggerCollection->get_Count(&pCount);
 
         cout << endl;
         cout << "Index\t | \tTask Trigger Type | \tStart Boundary\t | \tEnd Boundary" << endl;
         for (int i = 0; i < pCount; i++) {
             ITrigger* pTrigger_itr = NULL;
-            pTriggerCollection->get_Item(i+1, &pTrigger_itr);
+            pTriggerCollection->get_Item(i + 1, &pTrigger_itr);
 
             cout << i + 1 << "\t | \t";
             // get start boundary
@@ -36,12 +39,12 @@ HRESULT UpdateTask::updateTriggers(HRESULT& hr, ITaskDefinition* pTask, ITaskFol
             pTrigger_itr->get_EndBoundary(trigg_end);
 
             // get trigger type
-            TASK_TRIGGER_TYPE2 *pType = new TASK_TRIGGER_TYPE2;
+            TASK_TRIGGER_TYPE2* pType = new TASK_TRIGGER_TYPE2;
             pTrigger_itr->get_Type(pType);
 
             // print the details
             cout << trigger_arr[*pType]
-                << " | " <<  remainder->callConvertWCSToMBS(trigg_start) 
+                << " | " << remainder->callConvertWCSToMBS(trigg_start)
                 << " | " << remainder->callConvertWCSToMBS(trigg_end) << endl;
 
             // change start boundary
@@ -84,6 +87,25 @@ HRESULT UpdateTask::updateTriggers(HRESULT& hr, ITaskDefinition* pTask, ITaskFol
             pTrigger_itr->Release();
         }
 
+        // get the index to update or delete
+    //    cout << "Enter '0' to exit..." << endl;
+    //    int trigg_index = validIOHandlers->getInt("Enter the Index to Update/Delete [0 / Number]: ");
+
+    //    // break from tigger loop
+    //    if (trigg_index == 0) break;
+
+    //    // delete the trigger ??
+    //    if (validIOHandlers->isY("Delete Trigger [Y/n]?: ")) {
+    //        pTriggerCollection->Remove(_variant_t(trigg_index));
+
+    //        continue;
+    //    }
+
+    //    // update the trigger
+    //    ITrigger* pTrigger = NULL;
+    //    pTriggerCollection->get_Item(trigg_index, &pTrigger);
+    //    createTask->trigger(hr, pTask, pTriggerCollection, pTrigger, pRootFolder, true);
+    //}
     return hr;
 }
 
@@ -219,7 +241,6 @@ int UpdateTask::updateEvent() {
         if (validIOHandlers->isY("Add a new trigger [Y/n]?: ")) {
             ITrigger* pTrigger = NULL;
             hr = createTask->trigger(hr, pTask, pTriggerCollection, pTrigger, pRootFolder, true);
-            pTrigger->Release();
             if (FAILED(hr)) {
                 pTask->Release();
                 pRootFolder->Release();
