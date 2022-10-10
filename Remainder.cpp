@@ -193,11 +193,11 @@ int Remainder::readEvent()
                 COleDateTime next_run_time_c = COleDateTime(next_run_time);
                 if (SUCCEEDED(hr)) {
                     printf("\n\tNext Run Time: %f = \t", next_run_time);
-                    cout << last_run_time_c.GetDay() << "-";
-                    cout << last_run_time_c.GetMonth() << "-";
-                    cout << last_run_time_c.GetYear() << " ";
-                    cout << last_run_time_c.GetHour() << ":";
-                    cout << last_run_time_c.GetMinute() << endl;
+                    cout << next_run_time_c.GetDay() << "-";
+                    cout << next_run_time_c.GetMonth() << "-";
+                    cout << next_run_time_c.GetYear() << " ";
+                    cout << next_run_time_c.GetHour() << ":";
+                    cout << next_run_time_c.GetMinute() << endl;
                 }
                 else
                     printf("\n\tCannot get the registered task Next Run Time: %x", hr);
@@ -375,14 +375,73 @@ int Remainder::deleteEvent() {
         }
 
         cout << endl;
-        string task_name = validIOHandlers->getString("Enter a Task Name to delete [0 / Name]: ");
+        // delete all tasks
+        if (validIOHandlers->isY("Delete All Tasks [Y/n]? ")) {
+            if (validIOHandlers->isY("Are you sure to delete all tasks [Y/n]? ")) {
+                // get all tasks
+                IRegisteredTaskCollection* pTasks = NULL;
+                hr = pRootFolder->GetTasks(NULL, &pTasks);
 
-        if (task_name.compare("0") == 0) {
-            cout << "Exiting...!" << endl;
-            break;
+                if (FAILED(hr))
+                {
+                    printf("Cannot get the registered tasks.: %x", hr);
+                    CoUninitialize();
+                    return 1;
+                }
+
+                LONG numTasks = 0;
+                hr = pTasks->get_Count(&numTasks);
+
+                if (numTasks == 0)
+                {
+                    printf("\nNo Tasks are currently running");
+                    pTasks->Release();
+                    CoUninitialize();
+                    return 1;
+                }
+
+                // vector to store names
+                vector<BSTR> task_names;
+                // get task names
+                for (LONG i = 1; i <= numTasks; i++)
+                {
+                    IRegisteredTask* pRegisteredTask = NULL;
+                    hr = pTasks->get_Item(_variant_t(i), &pRegisteredTask);
+
+                    if (SUCCEEDED(hr))
+                    {
+                        // Task name
+                        BSTR taskName = NULL;
+                        hr = pRegisteredTask->get_Name(&taskName);
+                        if (SUCCEEDED(hr))
+                        {
+                            task_names.push_back(taskName);
+                        }
+                    }
+                    pRegisteredTask->Release();
+                }
+
+                //for (auto i = task_names.begin(); i != task_names.end(); ++i)
+                //    cout << ConvertWCSToMBS(*i, wcslen(*i)) << endl;
+                // traverse task names to delete task
+                for (auto i = task_names.begin(); i != task_names.end(); ++i)
+                    pRootFolder->DeleteTask(*i, 0);
+
+                cout << "Tasks deleted successfully!" << endl;
+                pTasks->Release();
+            }
         }
-        //  If the same task exists, remove it.
-        pRootFolder->DeleteTask(ConvertMBSToBSTR(task_name), 0);
+        else {
+            // delete a task by name
+            string task_name = validIOHandlers->getString("Enter a Task Name to delete [0 / Name]: ");
+
+            if (task_name.compare("0") == 0) {
+                cout << "Exiting...!" << endl;
+                break;
+            }
+            //  If the same task exists, remove it.
+            pRootFolder->DeleteTask(ConvertMBSToBSTR(task_name), 0);
+        }
 
         pRootFolder->Release();
         pService->Release();

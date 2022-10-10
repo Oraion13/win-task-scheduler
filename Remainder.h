@@ -3,6 +3,8 @@
 #include <string>
 #include <unordered_map>
 
+#include <vector>
+
 #include "ValidIOHandlers.h"
 
 #define _WIN32_DCOM
